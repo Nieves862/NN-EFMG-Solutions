@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="es">
+
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgroClima - Monitoreo Agrícola</title>
+    <!-- Estilos Google Fonts & Chart.js -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        font-family: "Google Sans", sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #eef2f5;
+        color: #202124;
+        padding: 20px;
+        transition: background 0.5s;
+      }
+
+      /* Temas dinámicos según el momento del día */
+      body.dia {
+        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      }
+      body.tarde {
+        background: linear-gradient(135deg, #ffe0b2, #ffcc80);
+      }
+      body.noche {
+        background: linear-gradient(135deg, #263238, #37474f);
+        color: #fff;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+      body.noche .card {
+        background: rgba(55, 71, 79, 0.85);
+        color: #fff;
+      }
+
+      /* Estilo Box Principal */
+      .header-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .temp-main {
+        font-size: 3.5rem;
+        font-weight: 700;
+      }
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+      .metric-item {
+        background: rgba(255, 255, 255, 0.6);
+        padding: 15px;
+        border-radius: 16px;
+        text-align: center;
+      }
+      body.noche .metric-item {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* Filtros y Gráficos */
+      .chart-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      .btn-filter {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 20px;
+        background: #e0e0e0;
+        cursor: pointer;
+        font-weight: 500;
+      }
+      .btn-filter.active {
+        background: #1a73e8;
+        color: white;
+      }
+
+      /* Simulación Semanal */
+      .forecast-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .forecast-day {
+        text-align: center;
+        padding: 12px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.5);
+      }
+      body.noche .forecast-day {
+        background: rgba(255, 255, 255, 0.08);
+      }
+    </style>
+  </head>
+  <body class="dia">
+    <div class="container">
+      <!-- Box 1: Datos en Tiempo Real y Estado Horario -->
+      <div class="card">
+        <div class="header-box">
+          <div>
+            <h2 id="momento-dia">Cargando...</h2>
+            <p id="fecha-hora" style="opacity: 0.8"></p>
+          </div>
+          <div class="temp-main" id="live-temp">--°C</div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <small>Humedad</small>
+            <h3 id="humedad">--%</h3>
+          </div>
+          <div class="metric-item">
+            <small>Calidad del Aire</small>
+            <h3 id="aire">--AQI</h3>
+          </div>
+          <div class="metric-item">
+            <small>Estado</small>
+            <h3 id="live-status">Estable</h3>
+          
+          </div>
+        </div>
+      </div>
+
+      <!-- Box 2: Tendencias e Históricos con Gráfico Interactivos -->
+      <div class="card">
+        <h3>Tendencias Climáticas Locales</h3>
+        <p style="font-size: 0.9em; opacity: 0.7; margin-bottom: 15px">
+          Selecciona el intervalo de tiempo para analizar patrones:
+        </p>
+        <div class="chart-controls">
+          <button class="btn-filter active" onclick="loadHistory(24, this)">
+            Últimas 24 hs
+          </button>
+          <button class="btn-filter" onclick="loadHistory(168, this)">
+            Última Semana
+          </button>
+        </div>
+        <canvas id="nicochart" height="100"></canvas>
+      </div>
+
+      <!-- Box 3: Simulación / Predictor Semanal -->
+      <div class="card">
+        <h3>Simulación de Clima para la Próxima Semana</h3>
+        <div class="forecast-grid" id="forecast-container">
+         <!-- Cargado dinámicamente con JS -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let myChart = null;
+
+      // Actualiza Fecha, Hora y asigna Tema visual (Día / Tarde / Noche)
+      function updateTimeAndTheme() {
+        const now = new Date();
+        const options = {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        };
+        document.getElementById("fecha-hora").innerText =
+          now.toLocaleDateString("es-ES", options);
+
+        const hour = now.getHours();
+        const body = document.body;
+        const momentoTag = document.getElementById("momento-dia");
+
+
+        if (hour >= 6 && hour < 13) {
+          body.className = "dia";
+          momentoTag.innerText = "Buenos días, Productor";
+        } else if (hour >= 13 && hour < 19) {
+          body.className = "tarde";
+          momentoTag.innerText = "Buenas tardes, Productor";
+        } else {
+          body.className = "noche";
+          momentoTag.innerText = "Buenas noches, Productor";
+        }
+      }
+
+      // 1. Obtener datos en tiempo real (Polling cada 3 segundos)
+      async function fetchLive() {
+        try {
+          const res = await fetch("/api/live");
+          const data = await res.json();
+          if (data) {
+            document.getElementById("live-temp").innerText = `${data.temperatura}°C`;
+            document.getElementById("humedad").innerText = `${data.humedad}%`;
+            document.getElementById("aire").innerText = `${data.calidad_aire}`;
+          }
+        } catch (e) {
+          console.error("Error al obtener datos en vivo:", e);
+        }
+      }
+
+      // 2. Cargar datos históricos y renderizar gráfico con Chart.js
+      async function loadHistory(hours, btn) {
+        if (btn) {
+          document
+            .querySelectorAll(".btn-filter")
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+        }
+
+        const res = await fetch(`/api/history?hours=${hours}`);
+        const records = await res.json();
+
+        const labels = records.map((r) => r.timestamp.split(" ")[1]); // Solo Hora
+        const temps = records.map((r) => r.temperatura);
+        const hums = records.map((r) => r.humedad);
+
+        if (myChart) myChart.destroy(); // Destruir instancia previa
+
+        const ctx = document.getElementById("nicochart").getContext("2d");
+        myChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Temperatura (°C)",
+                data: temps,
+                borderColor: "#ff6b6b",
+                tension: 0.4,
+                fill: false,
+              },
+              {
+                label: "Humedad (%)",
+                data: hums,
+                borderColor: "#4ecdc4",
+                tension: 0.4,
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { position: "top" } },
+          },
+        });
+      }
+
+      // 3. Cargar predicción del clima de la próxima semana
+      async function loadForecast() {
+        const res = await fetch("/api/forecast");
+        const forecast = await res.json();
+        const container = document.getElementById("forecast-container");
+        container.innerHTML = "";
+
+        forecast.forEach((item) => {
+          container.innerHTML += `
+                <div class="forecast-day">
+                    <strong>${item.dia}</strong>
+                    <div style="font-size:0.8em; opacity:0.8">${item.fecha}</div>
+                    <div style="font-size: 1.4em; font-weight:bold; margin: 5px 0;">${item.temperatura}°C</div>
+                    <small>${item.humedad}% Hum</small>
+                </div>
+            `;
+        });
+      }
+
+      // Inicialización de la aplicación
+      updateTimeAndTheme();
+      fetchLive();
+      loadHistory(24);
+      loadForecast();
+
+      // Intervalo de refresco constante (3 segundos)
+      setInterval(fetchLive, 3000);
+      setInterval(updateTimeAndTheme, 60000);
+    </script>
+  </body>
+</html>
