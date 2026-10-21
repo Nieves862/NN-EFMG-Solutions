@@ -21,7 +21,7 @@ def get_db_connection():
         host="localhost",
         user="root",
         password=db_pass,
-        database="estacionmetereologica_proa"
+        database="estacionmeteorologica_proa"
     )
 
 
@@ -55,7 +55,7 @@ def api_history():
         SELECT temperatura, humedad, gas AS calidad_aire,
                fecha_hora AS timestamp
         FROM mediciones
-        WHERE fecha_hora <= NOW() - INTERVAL %s HOUR
+        WHERE fecha_hora >= NOW() - INTERVAL %s HOUR
         ORDER BY fecha_hora ASC
     """
     cursor.execute(query, (hours,))
