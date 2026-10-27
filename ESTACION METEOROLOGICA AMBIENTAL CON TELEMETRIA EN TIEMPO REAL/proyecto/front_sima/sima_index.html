@@ -1,15 +1,17 @@
 <!doctype html>
 <html lang="es">
-
-
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AgroClima - Monitoreo Agrícola</title>
-    <!-- Estilos Google Fonts & Chart.js -->
+    <title>ORIC 4.0 - SIMA Monitoreo Agrícola</title>
+    <!-- Estilos Google Fonts, Chart.js & Bootstrap Icons -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;600&display=swap"
       rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -20,287 +22,677 @@
         padding: 0;
       }
       body {
-        background: #eef2f5;
-        color: #202124;
-        padding: 20px;
-        transition: background 0.5s;
+        transition: background 0.8s ease-in-out;
+        min-height: 100vh;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
       }
 
-      /* Temas dinámicos según el momento del día */
-      body.dia {
-        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      /* Fondos Dinámicos Fotográficos según el clima */
+      body.bg-soleado {
+        background-image: linear-gradient(rgba(15, 23, 42, 0.25), rgba(15, 23, 42, 0.25)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1600&auto=format&fit=crop');
+        color: #0f172a;
       }
-      body.tarde {
-        background: linear-gradient(135deg, #ffe0b2, #ffcc80);
+      body.bg-nublado {
+        background-image: linear-gradient(rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.3)), url('https://images.unsplash.com/photo-1534088568595-a066f410bcda?q=80&w=1600&auto=format&fit=crop');
+        color: #0f172a;
       }
-      body.noche {
-        background: linear-gradient(135deg, #263238, #37474f);
-        color: #fff;
+      body.bg-lluvioso {
+        background-image: linear-gradient(rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.55)), url('https://images.unsplash.com/photo-1519692933481-e162a57d6721?q=80&w=1600&auto=format&fit=crop');
+        color: #f8fafc;
+      }
+      body.bg-noche {
+        background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), url('https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=1600&auto=format&fit=crop');
+        color: #f8fafc;
       }
 
       .container {
-        max-width: 1000px;
+        max-width: 1020px;
         margin: 0 auto;
+        width: 100%;
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 16px;
       }
 
+      /* Tarjetas Glassmorphism */
       .card {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(10px);
-        border-radius: 24px;
-        padding: 24px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1.5px solid rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 20px 22px;
+        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
+        transition: transform 0.3s ease;
       }
-      body.noche .card {
-        background: rgba(55, 71, 79, 0.85);
-        color: #fff;
+      body.bg-noche .card, body.bg-lluvioso .card {
+        background: rgba(30, 41, 59, 0.88);
+        border: 1.5px solid rgba(255, 255, 255, 0.12);
+        color: #f8fafc;
       }
 
-      /* Estilo Box Principal */
-      .header-box {
+      .brand-title {
+        font-size: 0.78rem;
+        letter-spacing: 1.5px;
+        font-weight: 700;
+        color: #0284c7;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+      body.bg-noche .brand-title, body.bg-lluvioso .brand-title {
+        color: #38bdf8;
+      }
+
+      .greeting-container h2 {
+        font-size: 1.45rem;
+        font-weight: 500;
+      }
+      .location-badge {
+        display: inline-block;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: #0284c7;
+      }
+      body.bg-noche .location-badge, body.bg-lluvioso .location-badge {
+        color: #38bdf8;
+      }
+
+      .datetime-badge {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 5px 12px;
+        background: rgba(2, 132, 199, 0.08);
+        border: 1px solid rgba(2, 132, 199, 0.15);
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 500;
+      }
+
+      .temp-main-container {
+        text-align: right;
+      }
+      .temp-main {
+        font-size: 3rem;
+        font-weight: 300;
+        letter-spacing: -1px;
+      }
+
+      /* Botón de Alerta Lluvia con sombreado y animación */
+      .rain-alert-badge {
+        display: none;
+        margin-top: 6px;
+        padding: 6px 14px;
+        background: rgba(2, 132, 199, 0.25);
+        border: 1.5px solid rgba(56, 189, 248, 0.6);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        color: #38bdf8;
+        font-weight: 600;
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        animation: pulseAlert 2s infinite ease-in-out;
+      }
+      .rain-alert-badge:hover {
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: 0 8px 20px rgba(56, 189, 248, 0.5);
+      }
+      @keyframes pulseAlert {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.75; }
+      }
+
+      /* Métricas con sombra profunda y efecto de rebote/elevación */
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .metric-item {
+        background: rgba(224, 242, 254, 0.75);
+        padding: 14px 10px;
+        border-radius: 18px;
+        text-align: center;
+        border: 1.5px solid rgba(186, 230, 253, 0.9);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+        cursor: pointer;
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .metric-item:hover, .metric-item:active {
+        transform: translateY(-6px) scale(1.03);
+        box-shadow: 0 14px 26px rgba(2, 132, 199, 0.28);
+      }
+      body.bg-noche .metric-item, body.bg-lluvioso .metric-item {
+        background: rgba(15, 23, 42, 0.65);
+        border-color: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+      }
+      body.bg-noche .metric-item:hover, body.bg-lluvioso .metric-item:hover {
+        box-shadow: 0 14px 28px rgba(56, 189, 248, 0.25);
+      }
+
+      .metric-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #0369a1;
+      }
+      body.bg-noche .metric-label, body.bg-lluvioso .metric-label {
+        color: #38bdf8;
+      }
+
+      /* Semicírculo del Aire */
+      .gauge-box {
+        position: relative;
+        width: 90px;
+        height: 45px;
+        margin: 6px auto 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+      }
+      .gauge-text {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      /* Controles de Filtros y Exportación con Sombreados Unificados */
+      .chart-controls {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-      }
-      .temp-main {
-        font-size: 3.5rem;
-        font-weight: 700;
-      }
-      .metrics-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-        gap: 15px;
-        margin-top: 15px;
-      }
-      .metric-item {
-        background: rgba(255, 255, 255, 0.6);
-        padding: 15px;
-        border-radius: 16px;
-        text-align: center;
-      }
-      body.noche .metric-item {
-        background: rgba(255, 255, 255, 0.1);
-      }
-
-      /* Filtros y Gráficos */
-      .chart-controls {
-        display: flex;
         gap: 10px;
-        margin-bottom: 15px;
+        margin-bottom: 14px;
       }
       .btn-filter {
-        padding: 8px 16px;
-        border: none;
+        padding: 8px 18px;
+        border: 1.5px solid rgba(186, 230, 253, 0.8);
         border-radius: 20px;
-        background: #e0e0e0;
+        background: rgba(224, 242, 254, 0.85);
+        color: #0369a1;
         cursor: pointer;
-        font-weight: 500;
+        font-weight: 600;
+        font-size: 0.82rem;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background 0.2s ease;
+      }
+      .btn-filter:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 10px 20px rgba(2, 132, 199, 0.25);
       }
       .btn-filter.active {
-        background: #1a73e8;
+        background: #0284c7;
         color: white;
+        border-color: #38bdf8;
+        box-shadow: 0 8px 22px rgba(2, 132, 199, 0.45);
+      }
+      body.bg-noche .btn-filter, body.bg-lluvioso .btn-filter {
+        background: rgba(15, 23, 42, 0.65);
+        color: #e2e8f0;
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+      }
+      body.bg-noche .btn-filter.active, body.bg-lluvioso .btn-filter.active {
+        background: #0284c7;
+        color: white;
+        border-color: #38bdf8;
+        box-shadow: 0 8px 22px rgba(56, 189, 248, 0.4);
       }
 
-      /* Simulación Semanal */
+      /* Botones Exportación (Excel / PDF) */
+      .btn-export {
+        padding: 8px 16px;
+        border-radius: 18px;
+        border: 1.5px solid transparent;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+      }
+      .btn-export:hover {
+        transform: translateY(-3px) scale(1.03);
+      }
+      .btn-excel {
+        background: #16a34a;
+        color: white;
+        border-color: rgba(134, 239, 172, 0.5);
+        box-shadow: 0 6px 18px rgba(22, 163, 74, 0.35);
+      }
+      .btn-excel:hover {
+        box-shadow: 0 10px 24px rgba(22, 163, 74, 0.5);
+      }
+      .btn-pdf {
+        background: #ef4444;
+        color: white;
+        border-color: rgba(252, 165, 165, 0.5);
+        box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+      }
+      .btn-pdf:hover {
+        box-shadow: 0 10px 24px rgba(239, 68, 68, 0.5);
+      }
+
+      /* Predictor Semanal como Botones Interactivos con Sombreado */
       .forecast-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
         gap: 10px;
         margin-top: 10px;
       }
       .forecast-day {
         text-align: center;
-        padding: 12px;
-        border-radius: 16px;
-        background: rgba(255, 255, 255, 0.5);
+        padding: 12px 8px;
+        border-radius: 18px;
+        background: rgba(224, 242, 254, 0.75);
+        border: 1.5px solid rgba(186, 230, 253, 0.8);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        cursor: pointer;
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
       }
-      body.noche .forecast-day {
-        background: rgba(255, 255, 255, 0.08);
+      .forecast-day:hover {
+        transform: translateY(-5px) scale(1.04);
+        box-shadow: 0 12px 24px rgba(2, 132, 199, 0.28);
+      }
+      body.bg-noche .forecast-day, body.bg-lluvioso .forecast-day {
+        background: rgba(15, 23, 42, 0.65);
+        border-color: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+      }
+      body.bg-noche .forecast-day:hover, body.bg-lluvioso .forecast-day:hover {
+        box-shadow: 0 12px 26px rgba(56, 189, 248, 0.28);
+      }
+
+      /* Responsividad */
+      @media (max-width: 600px) {
+        body { padding: 10px; }
+        .card { padding: 15px; }
+        .header-box { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .temp-main-container { text-align: left; align-items: flex-start; }
+        .temp-main { font-size: 2.5rem; }
+        .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+        .forecast-grid { grid-template-columns: repeat(3, 1fr); }
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 20px;
+        padding: 10px;
+        font-size: 0.82rem;
+        color: #f8fafc;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.7);
       }
     </style>
   </head>
-  <body class="dia">
+  <body class="bg-soleado">
     <div class="container">
-      <!-- Box 1: Datos en Tiempo Real y Estado Horario -->
+      <!-- Box 1: Métricas en Vivo -->
       <div class="card">
-        <div class="header-box">
-          <div>
+        <div class="brand-title"><i class="bi bi-cpu"></i> ORIC 4.0 &bull; SIMA</div>
+        <div class="header-box" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <div class="greeting-container">
+            <div class="location-badge"><i class="bi bi-geo-alt-fill"></i> Corralito, Córdoba (X5853)</div>
             <h2 id="momento-dia">Cargando...</h2>
-            <p id="fecha-hora" style="opacity: 0.8"></p>
+            <div class="datetime-badge" id="fecha-hora">--</div>
           </div>
-          <div class="temp-main" id="live-temp">--°C</div>
+          <div class="temp-main-container">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <i id="live-icon" class="bi bi-cloud-sun" style="font-size: 2.2rem; color: #0284c7;"></i>
+              <div class="temp-main" id="live-temp">--°C</div>
+            </div>
+            <div style="font-size:0.9rem; opacity:0.9;" id="live-desc">Cargando clima...</div>
+            <button class="rain-alert-badge" id="rain-alert" onclick="alert('Alerta meteorológica activada: Se estiman precipitaciones en Corralito dentro de 30 minutos.')">
+              <i class="bi bi-umbrella-fill"></i> Lluvia inminente en ~30 min
+            </button>
+          </div>
         </div>
 
         <div class="metrics-grid">
           <div class="metric-item">
-            <small>Humedad</small>
-            <h3 id="humedad">--%</h3>
+            <div class="metric-label">Humedad</div>
+            <h3 id="humedad" style="margin-top: 4px; font-weight: 600;">--%</h3>
           </div>
-          <div class="metric-item">
-            <small>Calidad del Aire</small>
-            <h3 id="aire">--AQI</h3>
-          </div>
-          <div class="metric-item">
-            <small>Estado</small>
-            <h3 id="live-status">Estable</h3>
           
+          <div class="metric-item">
+            <div class="metric-label">Calidad del Aire</div>
+            <div class="gauge-box">
+              <canvas id="airGaugeCanvas"></canvas>
+              <div class="gauge-text" id="aire-val">--</div>
+            </div>
+          </div>
+
+          <div class="metric-item">
+            <div class="metric-label">Prob. Lluvia</div>
+            <h3 id="live-lluvia" style="margin-top: 4px; font-weight: 600; color: #0284c7;">--%</h3>
+          </div>
+          <div class="metric-item">
+            <div class="metric-label">Estado Ambiental</div>
+            <h3 id="live-status" style="font-size: 0.88rem; margin-top: 4px; font-weight: 600;">Estable</h3>
           </div>
         </div>
       </div>
 
-      <!-- Box 2: Tendencias e Históricos con Gráfico Interactivos -->
+      <!-- Box 2: Gráfico Histórico & Exportación -->
       <div class="card">
-        <h3>Tendencias Climáticas Locales</h3>
-        <p style="font-size: 0.9em; opacity: 0.7; margin-bottom: 15px">
-          Selecciona el intervalo de tiempo para analizar patrones:
-        </p>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 8px;">
+          <h3 style="font-size: 1.1rem; font-weight: 500;">Tendencias Climáticas Locales</h3>
+          <div style="display: flex; gap: 8px;">
+            <a href="/api/export/excel" class="btn-export btn-excel"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+            <a href="/api/export/pdf" class="btn-export btn-pdf"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
+          </div>
+        </div>
+
         <div class="chart-controls">
-          <button class="btn-filter active" onclick="loadHistory(24, this)">
-            Últimas 24 hs
-          </button>
-          <button class="btn-filter" onclick="loadHistory(168, this)">
-            Última Semana
-          </button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-filter active" onclick="loadHistory(24, this)">24 hs</button>
+            <button class="btn-filter" onclick="loadHistory(168, this)">Semana</button>
+          </div>
         </div>
         <canvas id="nicochart" height="100"></canvas>
       </div>
 
-      <!-- Box 3: Simulación / Predictor Semanal -->
+      <!-- Box 3: Predictor Semanal -->
       <div class="card">
-        <h3>Simulación de Clima para la Próxima Semana</h3>
-        <div class="forecast-grid" id="forecast-container">
-         <!-- Cargado dinámicamente con JS -->
-        </div>
+        <h3 style="font-size: 1.1rem; margin-bottom: 8px; font-weight: 500;">Pronóstico Semanal Corralito</h3>
+        <div class="forecast-grid" id="forecast-container"></div>
       </div>
     </div>
 
+    <footer>
+      ORIC 4.0 | Todos los derechos reservados | Desarrollado por <strong>Grupo SIMA (N²-EFMG Solutions &copy; 2026)</strong>
+    </footer>
+
     <script>
       let myChart = null;
+      let gaugeChart = null;
 
-      // Actualiza Fecha, Hora y asigna Tema visual (Día / Tarde / Noche)
+      function initGauge() {
+        const ctx = document.getElementById("airGaugeCanvas").getContext("2d");
+        gaugeChart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            datasets: [{
+              data: [0, 500],
+              backgroundColor: ["#16a34a", "rgba(255, 255, 255, 0.15)"],
+              borderWidth: 0,
+              circumference: 180,
+              rotation: 270,
+              borderRadius: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "84%",
+            plugins: { tooltip: { enabled: false }, legend: { display: false } }
+          }
+        });
+      }
+
+      function updateGauge(ppm) {
+        if (!gaugeChart) return;
+        const maxPPM = 500;
+        const val = Math.min(ppm, maxPPM);
+        let color = "#16a34a"; 
+        if (ppm > 300) color = "#ef4444"; 
+        else if (ppm > 150) color = "#f59e0b"; 
+
+        gaugeChart.data.datasets[0].data = [val, maxPPM - val];
+        gaugeChart.data.datasets[0].backgroundColor[0] = color;
+        gaugeChart.update();
+
+        document.getElementById("aire-val").innerText = `${ppm}`;
+        document.getElementById("aire-val").style.color = color;
+      }
+
       function updateTimeAndTheme() {
         const now = new Date();
-        const options = {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        };
-        document.getElementById("fecha-hora").innerText =
-          now.toLocaleDateString("es-ES", options);
+        const fechaOpciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        let fechaTexto = now.toLocaleDateString('es-ES', fechaOpciones);
+        
+        fechaTexto = fechaTexto.charAt(0).toUpperCase() + fechaTexto.slice(1);
+        fechaTexto = fechaTexto.replace(/ de ([a-zÀ-ÿ]+)/g, (match, p1) => ` de ${p1.charAt(0).toUpperCase() + p1.slice(1)}`);
+
+        const horaTexto = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById("fecha-hora").innerHTML = `<i class="bi bi-calendar3"></i> ${fechaTexto} &nbsp;|&nbsp; <i class="bi bi-clock"></i> ${horaTexto}`;
 
         const hour = now.getHours();
-        const body = document.body;
         const momentoTag = document.getElementById("momento-dia");
 
-
         if (hour >= 6 && hour < 13) {
-          body.className = "dia";
-          momentoTag.innerText = "Buenos días, Productor";
+          momentoTag.innerHTML = 'Buenos <strong>Días</strong>, Productores';
         } else if (hour >= 13 && hour < 19) {
-          body.className = "tarde";
-          momentoTag.innerText = "Buenas tardes, Productor";
+          momentoTag.innerHTML = 'Buenas <strong>Tardes</strong>, Productores';
         } else {
-          body.className = "noche";
-          momentoTag.innerText = "Buenas noches, Productor";
+          momentoTag.innerHTML = 'Buenas <strong>Noches</strong>, Productores';
         }
       }
 
-      // 1. Obtener datos en tiempo real (Polling cada 3 segundos)
       async function fetchLive() {
         try {
           const res = await fetch("/api/live");
           const data = await res.json();
-          if (data) {
+          if (data && data.temperatura !== undefined) {
             document.getElementById("live-temp").innerText = `${data.temperatura}°C`;
             document.getElementById("humedad").innerText = `${data.humedad}%`;
-            document.getElementById("aire").innerText = `${data.calidad_aire}`;
+            
+            updateGauge(data.calidad_aire);
+
+            const probLluviaLive = Math.max(0, Math.min(100, Math.round((data.humedad - 40) * 2.2)));
+            document.getElementById("live-lluvia").innerText = `${probLluviaLive}%`;
+
+            const alertBadge = document.getElementById("rain-alert");
+            if (probLluviaLive >= 75) {
+              alertBadge.style.display = "inline-block";
+            } else {
+              alertBadge.style.display = "none";
+            }
+
+            const hour = new Date().getHours();
+            const iconEl = document.getElementById("live-icon");
+            const body = document.body;
+            let desc = "Despejado";
+
+            if (hour < 6 || hour >= 20) {
+              body.className = "bg-noche";
+              if (probLluviaLive > 50) { iconEl.className = "bi bi-cloud-rain-moon"; desc = "Lluvioso"; }
+              else if (data.humedad > 65) { iconEl.className = "bi bi-cloud-moon"; desc = "Mayormente nublado"; }
+              else { iconEl.className = "bi bi-moon-stars"; desc = "Despejado"; }
+            } else {
+              if (probLluviaLive > 50) {
+                body.className = "bg-lluvioso";
+                iconEl.className = "bi bi-cloud-rain";
+                desc = "Lluvioso";
+              } else if (data.humedad > 65) {
+                body.className = "bg-nublado";
+                iconEl.className = "bi bi-cloud-sun";
+                desc = "Parcialmente nublado";
+              } else {
+                body.className = "bg-soleado";
+                iconEl.className = "bi bi-sun";
+                desc = "Soleado";
+              }
+            }
+
+            document.getElementById("live-desc").innerText = desc;
+
+            const statusTag = document.getElementById("live-status");
+            if (data.calidad_aire > 300) {
+              statusTag.innerText = "¡ALERTA GAS!";
+              statusTag.style.color = "#ef4444";
+            } else if (data.temperatura >= 35) {
+              statusTag.innerText = "Calor Extremo";
+              statusTag.style.color = "#f97316";
+            } else if (data.temperatura <= 15) {
+              statusTag.innerText = "Frío Extremo";
+              statusTag.style.color = "#38bdf8";
+            } else {
+              statusTag.innerText = "Óptimo";
+              statusTag.style.color = "#16a34a";
+            }
           }
         } catch (e) {
           console.error("Error al obtener datos en vivo:", e);
         }
       }
 
-      // 2. Cargar datos históricos y renderizar gráfico con Chart.js
       async function loadHistory(hours, btn) {
         if (btn) {
-          document
-            .querySelectorAll(".btn-filter")
-            .forEach((b) => b.classList.remove("active"));
+          document.querySelectorAll(".btn-filter").forEach((b) => b.classList.remove("active"));
           btn.classList.add("active");
         }
 
-        const res = await fetch(`/api/history?hours=${hours}`);
-        const records = await res.json();
+        try {
+          const res = await fetch(`/api/history?hours=${hours}`);
+          const records = await res.json();
 
-        const labels = records.map((r) => r.timestamp.split(" ")[1]); // Solo Hora
-        const temps = records.map((r) => r.temperatura);
-        const hums = records.map((r) => r.humedad);
+          if (!Array.isArray(records) || records.length === 0) return;
 
-        if (myChart) myChart.destroy(); // Destruir instancia previa
+          const labels = records.map((r) => {
+            if (!r.timestamp) return "";
+            const partes = r.timestamp.split(" ");
+            if (hours <= 24) {
+              return partes[1] ? partes[1].substring(0, 5) : r.timestamp;
+            } else {
+              const f = partes[0].split("-");
+              const horaMin = partes[1] ? partes[1].substring(0, 5) : '';
+              return [`${f[2]}/${f[1]}`, horaMin];
+            }
+          });
 
-        const ctx = document.getElementById("nicochart").getContext("2d");
-        myChart = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: "Temperatura (°C)",
-                data: temps,
-                borderColor: "#ff6b6b",
-                tension: 0.4,
-                fill: false,
+          const temps = records.map((r) => r.temperatura);
+          const hums = records.map((r) => r.humedad);
+
+          if (myChart) myChart.destroy();
+          const ctx = document.getElementById("nicochart").getContext("2d");
+
+          const isDarkTheme = document.body.classList.contains("bg-noche") || document.body.classList.contains("bg-lluvioso");
+
+          myChart = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: "Temperatura (°C)",
+                  data: temps,
+                  borderColor: "#ef4444",
+                  borderWidth: 2,
+                  tension: 0.3,
+                  fill: false,
+                  pointRadius: records.length > 50 ? 0 : 3,
+                },
+                {
+                  label: "Humedad (%)",
+                  data: hums,
+                  borderColor: "#38bdf8",
+                  borderWidth: 2,
+                  tension: 0.3,
+                  fill: false,
+                  pointRadius: records.length > 50 ? 0 : 3,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  position: "top",
+                  onClick: (e, legendItem, legend) => {
+                    const index = legendItem.datasetIndex;
+                    const ci = legend.chart;
+                    if (ci.isDatasetVisible(index)) {
+                      ci.hide(index);
+                      legendItem.hidden = true;
+                    } else {
+                      ci.show(index);
+                      legendItem.hidden = false;
+                    }
+                  },
+                  labels: { 
+                    color: isDarkTheme ? "#f8fafc" : "#0f172a", 
+                    font: { weight: '600' },
+                    boxWidth: 12,
+                    padding: 24, // Separa adecuadamente Temperatura y Humedad
+                    usePointStyle: true
+                  }
+                }
               },
-              {
-                label: "Humedad (%)",
-                data: hums,
-                borderColor: "#4ecdc4",
-                tension: 0.4,
-                fill: false,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { position: "top" } },
-          },
-        });
+              scales: {
+                x: {
+                  grid: { color: isDarkTheme ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)" },
+                  ticks: { color: isDarkTheme ? "#e2e8f0" : "#334155", font: { weight: '500' }, autoSkip: true, maxTicksLimit: 8 }
+                },
+                y: {
+                  grid: { color: isDarkTheme ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)" },
+                  ticks: { color: isDarkTheme ? "#e2e8f0" : "#334155", font: { weight: '500' } }
+                }
+              }
+            }         
+          });
+        } catch (e) {
+          console.error("Error en históricos:", e);
+        }
       }
 
-      // 3. Cargar predicción del clima de la próxima semana
       async function loadForecast() {
-        const res = await fetch("/api/forecast");
-        const forecast = await res.json();
-        const container = document.getElementById("forecast-container");
-        container.innerHTML = "";
+        try {
+          const res = await fetch("/api/forecast");
+          const forecast = await res.json();
+          const container = document.getElementById("forecast-container");
+          container.innerHTML = "";
 
-        forecast.forEach((item) => {
-          container.innerHTML += `
-                <div class="forecast-day">
-                    <strong>${item.dia}</strong>
-                    <div style="font-size:0.8em; opacity:0.8">${item.fecha}</div>
-                    <div style="font-size: 1.4em; font-weight:bold; margin: 5px 0;">${item.temperatura}°C</div>
-                    <small>${item.humedad}% Hum</small>
-                </div>
+          forecast.forEach((item) => {
+            let iconoHTML = '<i class="bi bi-sun" style="color: #eab308;"></i>';
+            if (item.probabilidad_lluvia > 60) {
+              iconoHTML = '<i class="bi bi-cloud-rain-heavy" style="color: #38bdf8;"></i>';
+            } else if (item.humedad > 65) {
+              iconoHTML = '<i class="bi bi-cloud-sun" style="color: #38bdf8;"></i>';
+            }
+
+            container.innerHTML += `
+              <div class="forecast-day">
+                  <strong>${item.dia}</strong>
+                  <div style="font-size:0.75em; opacity:0.8">${item.fecha}</div>
+                  <div style="font-size: 1.4em; margin: 4px 0;">${iconoHTML}</div>
+                  <div style="font-size: 1.05em; font-weight:600;">${item.temperatura}°C</div>
+                  <div style="font-size: 0.75em; margin-top: 2px;">💧 ${item.humedad}%</div>
+                  <div style="font-size: 0.78em; color:#38bdf8; font-weight: 600; margin-top: 2px;">☔ ${item.probabilidad_lluvia}%</div>
+              </div>
             `;
-        });
+          });
+        } catch (e) {
+          console.error("Error en pronóstico:", e);
+        }
       }
 
-      // Inicialización de la aplicación
+      initGauge();
       updateTimeAndTheme();
       fetchLive();
       loadHistory(24);
       loadForecast();
 
-      // Intervalo de refresco constante (3 segundos)
-      setInterval(fetchLive, 3000);
-      setInterval(updateTimeAndTheme, 60000);
+      setInterval(fetchLive, 30000);
+      setInterval(updateTimeAndTheme, 1000);
+      setInterval(loadForecast, 3600000);
     </script>
   </body>
 </html>
